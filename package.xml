@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>za_control_sandbox</name>
+  <version>0.0.1</version>
+  <description>Controller tests for the Za6</description>
+  <author email="arbogastaw@gmail.com">Alex Arbogast</author>
+  <maintainer email="arbogastaw@gmail.com">Alex Arbogast</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <exec_depend>xacro</exec_depend>
+  <exec_depend>rviz</exec_depend>
+  <exec_depend>joint_state_controller</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>ros_control_boilerplate</exec_depend>
+  <exec_depend>controller_manager</exec_depend>
+  <exec_depend>coordinated_motion_controllers</exec_depend>
+  <exec_depend>coordinated_motion_examples</exec_depend>
+  <depend>roscpp</depend>
+  <depend>rospy</depend>
+
+</package>
+
