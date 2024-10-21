@@ -14,9 +14,7 @@ catkin_package(CATKIN_DEPENDS
 include_directories(${catkin_INCLUDE_DIRS})
 
 catkin_install_python(PROGRAMS
-  scripts/coordinated_motion_demo.py
-  scripts/nullspace_control_demo.py
-  scripts/twist_decomposition_demo.py
+  scripts/control_demo.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
