@@ -3,8 +3,8 @@ import rospy
 
 from geometry_msgs.msg import Quaternion
 
-from coordinated_motion_examples import ControlDemo
-from coordinated_motion_examples.trajectory import *
+from taskspace_control_examples import ControlDemo
+from taskspace_control_examples.trajectory import *
 
 
 class BaseframeControlDemo(ControlDemo):
@@ -12,6 +12,7 @@ class BaseframeControlDemo(ControlDemo):
         super(BaseframeControlDemo, self).__init__(setpoint_hz)
         self.static_orient = Quaternion(0, 0, 0, 1)
         self.home = [0.238, 0.496, 0.568, 1.498, -1.531, -0.505]
+        self.arm_id = rospy.get_param("~arm_id")
 
     def run(self):
         self.start_joint_control()

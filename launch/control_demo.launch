@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="controller" default="nullspace_controller"
-       doc="One of 'nullspace_controller', 'twist_decomposition_controller'"/>
+  <arg name="controller" default="as_nullspace_controller"
+       doc="One of 'as_nullspace_controller', 'as_twist_decomposition_controller', 'pose_controller'"/>
 
   <group ns="rob1">
     <node pkg="za_control_sandbox" type="control_demo.py" name="control_client" output="screen">

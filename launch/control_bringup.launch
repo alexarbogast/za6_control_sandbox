@@ -21,8 +21,9 @@
     <rosparam file="$(find za_control_sandbox)/config/za_controllers.yaml"/>
     <node name="controllers_spawner" pkg="controller_manager" type="controller_manager"
       respawn="false" output="screen"
-      args="load nullspace_controller
-                 twist_decomposition_controller"/>
+      args="load pose_controller
+                 as_nullspace_controller
+                 as_twist_decomposition_controller"/>
   </group>
 
 </launch>

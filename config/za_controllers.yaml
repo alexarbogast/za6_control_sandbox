@@ -1,4 +1,22 @@
-nullspace_controller:
+pose_controller:
+  type: taskspace_controllers/PoseController
+  joints:
+    - rob1_joint_1
+    - rob1_joint_2
+    - rob1_joint_3
+    - rob1_joint_4
+    - rob1_joint_5
+    - rob1_joint_6
+
+  base_link: rob1_base_link
+  eef_link: rob1_flange
+
+  k_position: 10.0
+  k_orient: 10.0
+
+  setpoint_topic: setpoint
+
+as_nullspace_controller:
   type: axially_symmetric_controllers/NullspaceController
   joints:
     - rob1_joint_1
@@ -8,19 +26,19 @@ nullspace_controller:
     - rob1_joint_5
     - rob1_joint_6
 
-  alpha: 0.0
-  k_position: 50.0
-  k_aiming: 10.0
-  k_manip: 10.0
-  k_limits: 1.0
-
-  aiming_vec: [0.0, 0.0, 1.0]
-
   base_link: rob1_base_link
   eef_link: rob1_flange
+
+  k_position: 10.0
+  k_orient: 10.0
+
   setpoint_topic: setpoint
 
-twist_decomposition_controller:
+  objective_type: maximize_manipulability
+  rr_objective:
+    k_manip: 10.0
+
+as_twist_decomposition_controller:
   type: axially_symmetric_controllers/TwistDecompositionController
   joints:
     - rob1_joint_1
@@ -30,14 +48,14 @@ twist_decomposition_controller:
     - rob1_joint_5
     - rob1_joint_6
 
-  alpha: 0.0
-  k_position: 50.0
-  k_aiming: 10.0
-  k_manip: 50.0
-  k_limits: 1.0
-
-  aiming_vec: [0.0, 0.0, 1.0]
-
   base_link: rob1_base_link
   eef_link: rob1_flange
+
+  k_position: 10.0
+  k_orient: 10.0
+
   setpoint_topic: setpoint
+
+  objective_type: maximize_manipulability
+  rr_objective:
+    k_manip: 10.0
