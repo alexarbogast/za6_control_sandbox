@@ -34,7 +34,7 @@ as_nullspace_controller:
 
   setpoint_topic: setpoint
 
-  objective_type: maximize_manipulability
+  rr_objective_type: maximize_manipulability
   rr_objective:
     k_manip: 10.0
 
@@ -56,6 +56,6 @@ as_twist_decomposition_controller:
 
   setpoint_topic: setpoint
 
-  objective_type: maximize_manipulability
+  rr_objective_type: maximize_manipulability
   rr_objective:
     k_manip: 10.0

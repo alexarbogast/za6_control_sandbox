@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>za_control_sandbox</name>
-  <version>0.0.3</version>
+  <version>0.0.4</version>
   <description>Controller tests for the Za6</description>
   <author email="arbogastaw@gmail.com">Alex Arbogast</author>
   <maintainer email="arbogastaw@gmail.com">Alex Arbogast</maintainer>
