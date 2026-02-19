@@ -1,4 +1,4 @@
-from launch import LaunchDescription, launch_description
+from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.conditions import IfCondition, UnlessCondition
@@ -14,6 +14,13 @@ from launch_ros.descriptions import ParameterValue
 
 
 def generate_launch_description():
+    description_pkg_share = FindPackageShare("za6_description")
+    this_package_share = FindPackageShare("za6_control_sandbox")
+
+    default_rviz_config = PathJoinSubstitution(
+        [this_package_share, "config", "za6_control_sandbox.rviz"]
+    )
+
     declared_arguments = []
     declared_arguments.append(
         DeclareLaunchArgument(
@@ -24,9 +31,35 @@ def generate_launch_description():
     )
     declared_arguments.append(
         DeclareLaunchArgument(
+            "ros2_controllers_yaml",
+            description="ROS2 controller manager configuration YAML.",
+            default_value=PathJoinSubstitution(
+                [
+                    FindPackageShare("za6_control_sandbox"),
+                    "config",
+                    "za6_controllers.yaml",
+                ]
+            ),
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
             "controller",
             default_value="pose_controller",
             description="Which controller should be started?",
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "initial_positions_file",
+            description="Path to the initial positions configuration",
+            default_value=PathJoinSubstitution(
+                [
+                    FindPackageShare("za6_control_sandbox"),
+                    "config",
+                    "initial_positions.yaml",
+                ]
+            ),
         )
     )
     declared_arguments.append(
@@ -76,18 +109,12 @@ def generate_launch_description():
         ]
     )
     controller = LaunchConfiguration("controller")
+    initial_positions_file = LaunchConfiguration("initial_positions_file")
 
     hal_debug_output = LaunchConfiguration("hal_debug_output")
     hal_debug_level = LaunchConfiguration("hal_debug_level")
     publish_frequency = LaunchConfiguration("publish_frequency")
     use_rviz = LaunchConfiguration("use_rviz")
-
-    description_pkg_share = FindPackageShare("za6_description")
-    this_package_share = FindPackageShare("za6_control_sandbox")
-
-    default_rviz_config = PathJoinSubstitution(
-        [this_package_share, "config", "za6_control_sandbox.rviz"]
-    )
 
     robot_description_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -98,6 +125,7 @@ def generate_launch_description():
         launch_arguments={
             "ros2_control_name": ros2_control_name,
             "ros2_control_plugin": ros2_control_plugin,
+            "initial_positions_file": initial_positions_file,
         }.items(),
     )
     robot_description_content = LaunchConfiguration("robot_description_content")
@@ -118,26 +146,33 @@ def generate_launch_description():
     )
 
     # Hardware bringup
-    hal_hardware_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            PathJoinSubstitution(
-                [this_package_share, "launch", "hal_hardware.launch.py"]
-            )
-        ),
-        launch_arguments={
-            "hal_debug_output": hal_debug_output,
-            "hal_debug_level": hal_debug_level,
-        }.items(),
-        condition=UnlessCondition(use_mock_hardware),
-    )
+    # hal_hardware_launch = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource(
+    #         PathJoinSubstitution(
+    #             [this_package_share, "launch", "hal_hardware.launch.py"]
+    #         )
+    #     ),
+    #     launch_arguments={
+    #         "hal_debug_output": hal_debug_output,
+    #         "hal_debug_level": hal_debug_level,
+    #     }.items(),
+    #     condition=UnlessCondition(use_mock_hardware),
+    # )
 
-    mock_hardware_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            PathJoinSubstitution(
-                [this_package_share, "launch", "mock_hardware.launch.py"]
-            )
-        ),
-        condition=IfCondition(use_mock_hardware),
+    mock_hardware_node = Node(
+        package="controller_manager",
+        executable="ros2_control_node",
+        parameters=[
+            dict(
+                # Expanded robot description URDF
+                robot_description=ParameterValue(
+                    robot_description_content, value_type=str
+                ),
+            ),
+            LaunchConfiguration("ros2_controllers_yaml"),
+        ],
+        output="screen",
+        condition=IfCondition(use_mock_hardware)
     )
 
     # Controllers bringup
@@ -168,10 +203,11 @@ def generate_launch_description():
     )
 
     launch_description = [
-        hal_hardware_launch,
-        mock_hardware_launch,
+        # hal_hardware_launch,
+        # mock_hardware_launch,
         robot_description_launch,
         robot_state_publisher_node,
+        mock_hardware_node,
         joint_state_broadcaster_spawner,
         robot_controller_spawner,
         rviz_node,
