@@ -157,7 +157,7 @@ Visualization Manager:
           Value: false
         world:
           Value: false
-      Marker Scale: 1
+      Marker Scale: 0.5
       Name: TF
       Show Arrows: true
       Show Axes: true
@@ -178,6 +178,18 @@ Visualization Manager:
                             grasp_link:
                               {}
       Update Interval: 0
+      Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: MarkerArray
+      Namespaces:
+        cylinder: true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: visualization_marker_array
       Value: true
   Enabled: true
   Global Options:
@@ -225,22 +237,22 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 4.410307884216309
+      Distance: 1.8082795143127441
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.12945771217346191
-        Y: -0.21220320463180542
-        Z: 0.48999783396720886
+        X: -0.06688446551561356
+        Y: -0.170908123254776
+        Z: 0.20071375370025635
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.25039783120155334
+      Pitch: 0.24539783596992493
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
       Yaw: 0.7453964948654175
@@ -261,5 +273,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 3045
-  X: 5839
-  Y: 339
+  X: 463
+  Y: 193

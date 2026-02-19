@@ -146,34 +146,49 @@ def generate_launch_description():
     )
 
     # Hardware bringup
+    # hal_hardware_launch = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource(
+    #         PathJoinSubstitution(
+    #             [this_package_share, "launch", "hal_hardware.launch.py"]
+    #         )
+    #     ),
+    #     launch_arguments={
+    #         "hal_debug_output": hal_debug_output,
+    #         "hal_debug_level": hal_debug_level,
+    #     }.items(),
+    #     condition=UnlessCondition(use_mock_hardware),
+    # )
+
+
     hal_hardware_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
-                [this_package_share, "launch", "hal_hardware.launch.py"]
+                [FindPackageShare("za6_hardware"), "launch", "hal_hardware.launch.py"]
             )
         ),
         launch_arguments={
             "hal_debug_output": hal_debug_output,
             "hal_debug_level": hal_debug_level,
+            "use_fake_hardware": use_mock_hardware,
         }.items(),
-        condition=UnlessCondition(use_mock_hardware),
+        # condition=UnlessCondition(use_mock_hardware),
     )
 
-    mock_hardware_node = Node(
-        package="controller_manager",
-        executable="ros2_control_node",
-        parameters=[
-            dict(
-                # Expanded robot description URDF
-                robot_description=ParameterValue(
-                    robot_description_content, value_type=str
-                ),
-            ),
-            LaunchConfiguration("ros2_controllers_yaml"),
-        ],
-        output="screen",
-        condition=IfCondition(use_mock_hardware)
-    )
+    # mock_hardware_node = Node(
+    #     package="controller_manager",
+    #     executable="ros2_control_node",
+    #     parameters=[
+    #         dict(
+    #             # Expanded robot description URDF
+    #             robot_description=ParameterValue(
+    #                 robot_description_content, value_type=str
+    #             ),
+    #         ),
+    #         LaunchConfiguration("ros2_controllers_yaml"),
+    #     ],
+    #     output="screen",
+    #     condition=IfCondition(use_mock_hardware)
+    # )
 
     # Controllers bringup
     joint_state_broadcaster_spawner = Node(
@@ -203,10 +218,10 @@ def generate_launch_description():
     )
 
     launch_description = [
-        hal_hardware_launch,
         robot_description_launch,
         robot_state_publisher_node,
-        mock_hardware_node,
+        hal_hardware_launch,
+        # mock_hardware_node,
         joint_state_broadcaster_spawner,
         robot_controller_spawner,
         rviz_node,
