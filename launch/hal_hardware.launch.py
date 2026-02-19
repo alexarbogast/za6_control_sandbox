@@ -32,18 +32,14 @@
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
-from launch.conditions import IfCondition, UnlessCondition
 from launch.substitutions import (
     LaunchConfiguration,
     PathJoinSubstitution,
     PythonExpression,
 )
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.descriptions import ParameterValue
-
-from ament_index_python.packages import get_package_share_directory
 
 from hal_hw_interface.launch import HalConfig, HalRTNode, HalUserNode, HalFiles
 
@@ -58,19 +54,10 @@ def generate_launch_description():
 
     prefix = LaunchConfiguration("prefix")
 
-    # Load URDF content via robot_description.launch.py
-    # FIXME This is the right way to do this, but it causes some kind of
-    #     circular dependency
-    # description_package_share = FindPackageShare(
-    #     LaunchConfiguration("description_package")
-    # )
-    description_package_share = get_package_share_directory("za6_description")
-    # /FIXME
-
     description_launch_py = PythonLaunchDescriptionSource(
         PathJoinSubstitution(
             [
-                description_package_share,
+                FindPackageShare("za6_description"),
                 "launch",
                 "robot_description.launch.py",
             ]
@@ -80,20 +67,9 @@ def generate_launch_description():
 
     # launch.substitutions.EqualsSubstitution() coming someday
     # sim = EqualsSubstitution(LaunchConfiguration("sim_mode"), "true")
-    sim = PythonExpression(
-        ["'", LaunchConfiguration("sim_mode"), "' == 'true'"]
-    )
+    sim = PythonExpression(["'", LaunchConfiguration("sim_mode"), "' == 'true'"])
 
-    # Set ros2_control hardware plugin to HAL or fake hardware, depending on
-    # `use_fake_hardware` launch arg value
-    ros2_control_plugin = PythonExpression(
-        [
-            "'mock_components/GenericSystem' if '",
-            LaunchConfiguration("use_fake_hardware"),
-            "' == 'true' else ",
-            "'hal_system_interface/HalSystemInterface'",
-        ]
-    )
+    ros2_control_plugin = "hal_system_interface/HalSystemInterface"
 
     launch_entities = [
         DeclareLaunchArgument(
@@ -114,11 +90,6 @@ def generate_launch_description():
                 "if changed, controller configuration joint names "
                 "must also be updated"
             ),
-        ),
-        DeclareLaunchArgument(
-            "use_fake_hardware",
-            default_value="false",
-            description="Use ros2_control mock_components/GenericSystem plugin",
         ),
         IncludeLaunchDescription(
             description_launch_py,
@@ -228,11 +199,6 @@ def generate_launch_description():
             ),
         ),
         DeclareLaunchArgument(
-            "joint_trajectory_topic",
-            description="Joint trajectory controller topic name.",
-            default_value="/joint_trajectory_controller/joint_trajectory",
-        ),
-        DeclareLaunchArgument(
             "drive_state_timeout",
             description="Timeout for drive enable/disable services.",
             default_value="10",
@@ -314,9 +280,7 @@ def generate_launch_description():
                         # Add `--sim` if in sim mode, otherwise empty string;
                         # ugly, yes, and should be fixed with proper command
                         # line arg parsing in hw_device_mgr
-                        PythonExpression(
-                            expression=["'--sim' if ", sim, " else ''"]
-                        ),
+                        PythonExpression(expression=["'--sim' if ", sim, " else ''"]),
                         # '--ros-args',
                         # '--log-level', 'debug',
                     ],
@@ -351,13 +315,8 @@ def generate_launch_description():
                     executable="drive_state",
                     parameters=[
                         dict(
-                            update_rate=LaunchConfiguration(
-                                "drive_state_update_rate"
-                            ),
+                            update_rate=LaunchConfiguration("drive_state_update_rate"),
                             timeout=LaunchConfiguration("drive_state_timeout"),
-                            joint_trajectory_topic=LaunchConfiguration(
-                                "joint_trajectory_topic"
-                            ),
                             # File with HAL device configuration
                             device_config_path=LaunchConfiguration(
                                 "hal_device_config_path"
@@ -408,37 +367,6 @@ def generate_launch_description():
                     ],
                 ),
             ],
-            condition=UnlessCondition(LaunchConfiguration("use_fake_hardware")),
-        ),
-        # Fake hardware configuration & controller manager
-        Node(
-            package="controller_manager",
-            executable="ros2_control_node",
-            parameters=[  # ROS parameters from various sources
-                # Individual keys
-                dict(
-                    # Expanded robot description URDF
-                    robot_description=ParameterValue(
-                        robot_description_content, value_type=str
-                    ),
-                ),
-                # Controller manager controller config params
-                LaunchConfiguration("ros2_controllers_yaml"),
-            ],
-            output="screen",
-            condition=IfCondition(LaunchConfiguration("use_fake_hardware")),
-        ),
-        # Launch joint_trajectory_controller and joint_state_broadcaster
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                PathJoinSubstitution(
-                    [
-                        moveit_pkg_share,
-                        "launch",
-                        "spawn_controllers.launch.py",
-                    ]
-                )
-            ),
         ),
     ]
 

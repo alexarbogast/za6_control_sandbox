@@ -41,7 +41,7 @@ colcon build
 Bring up the ros2 simulation as follows:
 
 ```bash
-ros2 launch za6_control_sandbox bringup.launch.py controller:=as_nullspace_controller
+ros2 launch za6_control_sandbox bringup.launch.py controller:=pose_controller
 ```
 
 Use the `controller` parameter to select the loaded controller.
@@ -63,7 +63,7 @@ Launch the desired controller demo with the same type of `controller` used in
 the bringup.
 
 ```bash
-ros2 launch za6_control_sandbox control_demo.launch.py controller:=as_nullspace_controller
+ros2 launch za6_control_sandbox control_demo.launch.py controller:=pose_controller
 ```
 
 <a id='4'></a>

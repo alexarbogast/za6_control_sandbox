@@ -146,18 +146,18 @@ def generate_launch_description():
     )
 
     # Hardware bringup
-    # hal_hardware_launch = IncludeLaunchDescription(
-    #     PythonLaunchDescriptionSource(
-    #         PathJoinSubstitution(
-    #             [this_package_share, "launch", "hal_hardware.launch.py"]
-    #         )
-    #     ),
-    #     launch_arguments={
-    #         "hal_debug_output": hal_debug_output,
-    #         "hal_debug_level": hal_debug_level,
-    #     }.items(),
-    #     condition=UnlessCondition(use_mock_hardware),
-    # )
+    hal_hardware_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution(
+                [this_package_share, "launch", "hal_hardware.launch.py"]
+            )
+        ),
+        launch_arguments={
+            "hal_debug_output": hal_debug_output,
+            "hal_debug_level": hal_debug_level,
+        }.items(),
+        condition=UnlessCondition(use_mock_hardware),
+    )
 
     mock_hardware_node = Node(
         package="controller_manager",
@@ -203,8 +203,7 @@ def generate_launch_description():
     )
 
     launch_description = [
-        # hal_hardware_launch,
-        # mock_hardware_launch,
+        hal_hardware_launch,
         robot_description_launch,
         robot_state_publisher_node,
         mock_hardware_node,
