@@ -1,47 +1,51 @@
+#!/usr/bin/env python3
+
+# Copyright 2024 Alex Arbogast
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import numpy as np
-import quaternion
-import rospy
 
-from taskspace_control_examples import ControlDemo
-from taskspace_control_examples.trajectory import *
-
-robot_params = {
-    "pose_controller": {
-        "home": [0.484, 0.425, 0.661, 1.959, -1.77, -0.446],
-    },
-    "as_nullspace_controller": {
-        "home": [0.484, 0.425, 0.661, 1.959, -1.77, -0.446],
-    },
-}
+import rclpy
+import threading
 
 
-class BaseframeControlDemo(ControlDemo):
-    def __init__(self, setpoint_hz=1000):
-        super(BaseframeControlDemo, self).__init__(setpoint_hz)
-        controller_type = rospy.get_param("~controller", "pose_controller")
-        self.home = robot_params[controller_type]["home"]
-        self.static_orient = np.quaternion(1.0, 0.0, 0.0, 0.0)
-        self.arm_id = rospy.get_param("~arm_id")
+from std_msgs.msg import ColorRGBA
+
+from taskspace_control_examples import ControlDemo, PathVisualization
+
+
+NODE_NAME = "za6_control_demo"
+
+
+class Za6ControlDemo(ControlDemo):
+    def __init__(self, node_name: str, setpoint_hz=250):
+        super().__init__(node_name, setpoint_hz)
+
+        self.path_viz = PathVisualization(
+            self, 0.007, ColorRGBA(r=0.96, g=0.38, b=0.21, a=1.0)
+        )
+
+        self.static_orient = np.array([0.0, 0.70710678, 0.0, 0.70710678])
 
     def run(self):
-        self.start_joint_control()
-        self.joint_controller_client.move_joint(self.home, 2.0)
-
-        self.start_taskspace_control()
-
         self.test_line()
-        self.test_cube()
-        self.base_frame_circle()
-        self.base_frame_hypotrochoid()
-
-        self.start_joint_control()
-        self.joint_controller_client.move_joint(self.home, 3.0)
 
     def test_line(self):
         tf = 3
-        p_start = np.array([0.5, 0.3, 0.1])
-        p_end = np.array([0.5, -0.3, 0.1])
-        self.path_viz.visualize_path([p_start, p_end], f"{self.arm_id}_base_link")
+        p_start = np.array([0.5, 0.3, 0.25])
+        p_end = np.array([0.5, -0.3, 0.25])
+        self.path_viz.visualize_path([p_start, p_end], f"base_link")
 
         self.movel(p_start, self.static_orient, 3)
         self.execute_linear_path(
@@ -49,76 +53,20 @@ class BaseframeControlDemo(ControlDemo):
         )
         self.path_viz.reset()
 
-    def test_cube(self):
-        center = np.array([0.4, 0.0, 0.35])
-        points = np.array(
-            [
-                [0.0, 0.0, 0.0],
-                [-0.05, 0.5, -0.25],
-                [-1.0, 0.5, -0.25],
-                [-1.0, 0.5, 0.45],
-                [-0.05, 0.5, 0.45],
-                [-0.05, -0.5, 0.45],
-                [-1.0, -0.5, 0.45],
-                [-1.0, -0.5, -0.25],
-                [-0.05, -0.5, -0.25],
-                [-0.05, 0.5, -0.25],
-            ]
-        )
-        points += center
-        self.path_viz.visualize_path(points[1:], f"{self.arm_id}_base_link")
 
-        self.movel(center, self.static_orient, 2)
-        for i in range(len(points) - 1):
-            current = points[i]
-            next = points[i + 1]
-            self.execute_linear_path(
-                current, next, self.static_orient, self.static_orient, 2.0
-            )
+def main(args=None):
+    rclpy.init(args=args)
+    node = Za6ControlDemo(NODE_NAME)
 
-        self.path_viz.reset()
-
-    def base_frame_circle(self):
-        tf = 5
-        tt = np.linspace(0, tf, int(self.hz * tf))
-        f, f_dot = circular_traj(1 / 7, tf)
-
-        offset = np.array([0.5, 0.0, 0.2])
-        ft, f_dott = f(tt) + offset, f_dot(tt)
-
-        self.path_viz.visualize_path(
-            [f(t) + offset for t in np.linspace(0, tf, 500)],
-            f"{self.arm_id}_base_link",
-        )
-
-        self.movel(ft[0], self.static_orient, 2)
-        self.execute_path(ft, f_dott, self.static_orient)
-        self.path_viz.reset()
-
-    def base_frame_hypotrochoid(self):
-        scale = 1 / 30
-        tf = 10
-        tt = np.linspace(0, tf, int(self.hz * tf))
-        f, f_dot = hypotrochoid_traj(3, 5, 4.5, tf, scaling=Order.THIRD)
-
-        offset = np.array([0.45, 0.0, 0.2])
-        ft, f_dott = scale * f(tt) + offset, scale * f_dot(tt)
-
-        self.path_viz.visualize_path(
-            [scale * f(t) + offset for t in np.linspace(0, tf, 500)],
-            f"{self.arm_id}_base_link",
-        )
-
-        self.movel(ft[0], self.static_orient, 1)
-        self.execute_path(ft, f_dott, self.static_orient)
-        self.path_viz.reset()
+    try:
+        threading.Thread(target=rclpy.spin, args=(node,), daemon=True).start()
+        node.run()
+    except Exception as e:
+        node.get_logger().error(f"Exception in demo: {e}")
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()
 
 
 if __name__ == "__main__":
-    rospy.init_node("base_frame_control_client")
-
-    try:
-        demo = BaseframeControlDemo()
-        demo.run()
-    except rospy.ROSInterruptException:
-        pass
+    main()
