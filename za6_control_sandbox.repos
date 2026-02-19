@@ -1,0 +1,9 @@
+repositories:
+  tormach_za_ros2_drivers:
+    type: git
+    url: https://github.com/tormach/tormach_za_ros2_drivers
+    version: humble
+  taskspace_control:
+    type: git
+    url: https://github.com/alexarbogast/taskspace_control.git
+    version: ros2

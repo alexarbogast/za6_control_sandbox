@@ -1,25 +1,20 @@
-cmake_minimum_required(VERSION 3.0.2)
-project(za_control_sandbox)
+cmake_minimum_required(VERSION 3.5)
+project(za6_control_sandbox)
 
-find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  rospy
-)
+find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_python REQUIRED)
 
-catkin_package(CATKIN_DEPENDS
-  roscpp
-  rospy
-)
+ament_python_install_package(${PROJECT_NAME})
 
-include_directories(${catkin_INCLUDE_DIRS})
-
-catkin_install_python(PROGRAMS
+install(PROGRAMS
   scripts/control_demo.py
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  DESTINATION lib/${PROJECT_NAME}
 )
 
 install(DIRECTORY
   config
   launch
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+  DESTINATION share/${PROJECT_NAME}
 )
+
+ament_package()

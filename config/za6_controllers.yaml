@@ -1,0 +1,40 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 500  # Hz
+    pose_controller:
+      type: taskspace_controllers/PoseController
+    as_nullspace_controller:
+      type: axially_symmetric_controllers/NullspaceController
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+pose_controller:
+  ros__parameters:
+    command_interfaces:
+      - position
+      - velocity
+
+    base_link: base_link
+    eef_link: flange
+
+    k_position: 10.0
+    k_orient: 10.0
+
+    setpoint_topic: setpoint
+
+as_nullspace_controller:
+  ros__parameters:
+    command_interfaces:
+      - position
+      - velocity
+
+    base_link: base_link
+    eef_link: flange
+
+    k_position: 10.0
+    k_orient: 10.0
+
+    setpoint_topic: setpoint
+
+    rr_objective_type: maximize_manipulability
+    k_manip: 100.0
