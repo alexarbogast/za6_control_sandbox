@@ -429,17 +429,17 @@ def generate_launch_description():
             condition=IfCondition(LaunchConfiguration("use_fake_hardware")),
         ),
         # Launch joint_trajectory_controller and joint_state_broadcaster
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                PathJoinSubstitution(
-                    [
-                        moveit_pkg_share,
-                        "launch",
-                        "spawn_controllers.launch.py",
-                    ]
-                )
-            ),
-        ),
+        # IncludeLaunchDescription(
+        #     PythonLaunchDescriptionSource(
+        #         PathJoinSubstitution(
+        #             [
+        #                 moveit_pkg_share,
+        #                 "launch",
+        #                 "spawn_controllers.launch.py",
+        #             ]
+        #         )
+        #     ),
+        # ),
     ]
 
     return LaunchDescription(launch_entities)
