@@ -19,11 +19,11 @@ import numpy as np
 import rclpy
 import threading
 
-
 from std_msgs.msg import ColorRGBA
 
 from taskspace_control_examples import ControlDemo, PathVisualization
-from taskspace_control_examples.trajectory import circular_traj
+from taskspace_control_examples.quaternion import *
+from taskspace_control_examples.trajectory import *
 
 
 NODE_NAME = "za6_control_demo"
@@ -38,37 +38,79 @@ class Za6ControlDemo(ControlDemo):
         )
 
         self.static_orient = np.array([0.0, 0.70710678, 0.0, 0.70710678])
+        self.q_diff = np.array([0.707107, -0.707107, 0, 0])
 
     def run(self):
-        self.test_line()
-        # self.test_circle()
+        self.line()
+        self.test_circle()
+        self.test_hypotrochoid()
 
-    def test_line(self):
+    def line(self):
         tf = 3
-        p_start = np.array([0.5, 0.3, 0.25])
-        p_end = np.array([0.5, -0.3, 0.25])
+        tt = np.linspace(0, tf, int(self.hz * tf))
+
+        p_start = np.array([0.6, 0.3, 0.25])
+        p_end = np.array([0.6, -0.3, 0.25])
+
+        f, f_dot = linear_traj(p_start, p_end, tf)
+        ft, f_dott = f(tt), f_dot(tt)
+
+        q_start = self.static_orient
+        q_end = quaternion_multiply(self.static_orient, self.q_diff)
+
+        q, _ = slerp_traj(q_start, q_end, tf, scaling=Order.FIFTH)
+        qt = q(tt)
+
         self.path_viz.visualize_path([p_start, p_end], "base_link")
 
-        self.movel(p_start, self.static_orient, 3)
-        self.execute_linear_path(
-            p_start, p_end, self.static_orient, self.static_orient, tf
-        )
+        self.movel(p_start, self.static_orient, 2)
+        self.execute_path(ft, f_dott, qt)
         self.path_viz.reset()
 
     def test_circle(self):
-        tf = 5
+        tf = 6
         tt = np.linspace(0, tf, int(self.hz * tf))
         f, f_dot = circular_traj(1 / 7, tf)
 
-        offset = np.array([0.6, 0.0, 0.2])
+        offset = np.array([0.5, 0.0, 0.2])
         ft, f_dott = f(tt) + offset, f_dot(tt)
+
+        q_start = self.static_orient
+        q_end = quaternion_multiply(self.static_orient, self.q_diff)
+
+        q, _ = slerp_traj(q_start, q_end, tf, scaling=Order.FIFTH)
+        qt = q(tt)
 
         self.path_viz.visualize_path(
             [f(t) + offset for t in np.linspace(0, tf, 500)], "base_link"
         )
 
         self.movel(ft[0], self.static_orient, 2)
-        self.execute_path(ft, f_dott, self.static_orient)
+        self.execute_path(ft, f_dott, qt)
+        self.path_viz.reset()
+
+    def test_hypotrochoid(self):
+        scale = 1 / 35
+        tf = 10
+        tt = np.linspace(0, tf, int(self.hz * tf))
+        f, f_dot = hypotrochoid_traj(3, 5, 4.5, tf, scaling=Order.THIRD)
+
+        offset = np.array([0.5, 0.0, 0.2])
+        ft, f_dott = scale * f(tt) + offset, scale * f_dot(tt)
+
+        q_start = self.static_orient
+        q_end = quaternion_multiply(self.static_orient, self.q_diff)
+
+        q, _ = slerp_traj(q_start, q_end, tf, scaling=Order.FIFTH)
+        qt = q(tt)
+
+        self.path_viz.visualize_path(
+            [scale * f(t) + offset for t in np.linspace(0, tf, 500)],
+            "base_link",
+        )
+
+        self.movel(ft[0], self.static_orient, 1)
+        self.execute_path(ft, f_dott, qt)
         self.path_viz.reset()
 
 
