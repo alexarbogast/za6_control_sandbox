@@ -1,7 +1,7 @@
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.conditions import IfCondition
+from launch.conditions import IfCondition, UnlessCondition
 from launch.substitutions import (
     LaunchConfiguration,
     PathJoinSubstitution,
@@ -170,9 +170,24 @@ def generate_launch_description():
             "hal_debug_output": hal_debug_output,
             "hal_debug_level": hal_debug_level,
             "ros2_controllers_yaml": ros2_controllers_yaml,
-            "use_fake_hardware": use_mock_hardware,  # ros2 mock hardware
             "sim_mode": sim_hal,  # simulated hal hardware
         }.items(),
+        condition=UnlessCondition(use_mock_hardware),
+    )
+
+    mock_hardware_launch = Node(
+        package="controller_manager",
+        executable="ros2_control_node",
+        parameters=[
+            {
+                "robot_description": ParameterValue(
+                    robot_description_content, value_type=str
+                )
+            },
+            ros2_controllers_yaml,
+        ],
+        output="screen",
+        condition=IfCondition(use_mock_hardware),
     )
 
     # Controllers bringup
@@ -206,6 +221,7 @@ def generate_launch_description():
         robot_description_launch,
         robot_state_publisher_node,
         hal_hardware_launch,
+        mock_hardware_launch,
         joint_state_broadcaster_spawner,
         robot_controller_spawner,
         rviz_node,

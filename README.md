@@ -38,6 +38,11 @@ colcon build
 
 ## Simulating the controllers in ROS 2
 
+> [!TIP]
+> When building to run in simulation, you can add a file named `COLCON_IGNORE`
+> to the root of the `tormach_za_ros2_drivers/za6_hardware` package. This avoids
+> needing the `hal_hw_interface` dependency.
+
 Bring up the ros2 simulation as follows:
 
 ```bash
