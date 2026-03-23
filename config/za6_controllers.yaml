@@ -20,8 +20,6 @@ pose_controller:
     k_position: 10.0
     k_orient: 10.0
 
-    setpoint_topic: setpoint
-
 as_nullspace_controller:
   ros__parameters:
     command_interfaces:
@@ -34,7 +32,9 @@ as_nullspace_controller:
     k_position: 10.0
     k_orient: 10.0
 
-    setpoint_topic: setpoint
+    rr_objective_type: match_configuration
+    match_config: [1.157, 0.576, 0.576, 0.890, -1.292, -0.332]
+    k_config: 10.0
 
-    rr_objective_type: maximize_manipulability
-    k_manip: 100.0
+    eef_frame_axis: [1.0, 0.0, 0.0]
+    setpoint_frame_axis: [1.0, 0.0, 0.0]
